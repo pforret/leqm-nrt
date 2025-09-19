@@ -63,3 +63,11 @@ Using input channel calibration for 2.0 configuration:
 Leq(M): 74.7538
 ```
 
+* [ ]  [Leq M Computation Pipeline](algorithm.md) 
+* [ ]  [Allen Metric Calculations](allenmetric.md) 
+* [ ]  [Itu R Bs 1770 5](bs_1770.md) 
+* [ ]  [Itu R Bs 2051 3](bs_2051.md) 
+* [ ]  [Iso 21727 2004](iso_2004.md) 
+* [ ]  [Iso 22234 2005](iso_2005.md) 
+* [ ]  [Iso 2969 2015](iso_2015.md) 
+* [ ]  [Iso 21727 2016](iso_2016.md) 
