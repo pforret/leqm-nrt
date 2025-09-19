@@ -92,6 +92,7 @@ except Exception:
 
 measurements = data.get("measurements") or {}
 execution = data.get("execution") or {}
+metadata = data.get("metadata") or {}
 
 leq_m = measurements.get("leq_m")
 if leq_m is None:
@@ -99,10 +100,12 @@ if leq_m is None:
     print_result(row)
     sys.exit(0)
 
-sample_rate = data.get("original_sample_rate")
-channels = data.get("channels")
-frames = data.get("frames")
-duration = data.get("duration_seconds")
+sample_rate = metadata.get("original_sample_rate")
+channels = metadata.get("channels")
+frames = metadata.get("frames")
+duration = metadata.get("duration_seconds")
+if isinstance(duration, dict):
+    duration = None
 
 if duration is None and isinstance(sample_rate, (int, float)) and isinstance(frames, (int, float)) and sample_rate:
     try:

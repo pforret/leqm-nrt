@@ -49,18 +49,23 @@ type loudnessMeasurements struct {
 	MeanPowerWeighted measurementFloat `json:"mean_power_weighted"`
 }
 
+type loudnessMetadata struct {
+	File                string           `json:"file"`
+	OriginalSampleRate  int              `json:"original_sample_rate"`
+	EffectiveSampleRate int              `json:"effective_sample_rate"`
+	Channels            int              `json:"channels"`
+	Frames              int64            `json:"frames"`
+	DurationSeconds     measurementFloat `json:"duration_seconds"`
+}
+
 type loudnessResult struct {
-	File                string               `json:"file"`
-	OriginalSampleRate  int                  `json:"original_sample_rate"`
-	EffectiveSampleRate int                  `json:"effective_sample_rate"`
-	Channels            int                  `json:"channels"`
-	Frames              int64                `json:"frames"`
-	DurationSeconds     float64              `json:"duration_seconds"`
-	Measurements        loudnessMeasurements `json:"measurements"`
-	ReferenceOffsetDB   float64              `json:"reference_offset_db"`
-	ChannelStats        []channelStat        `json:"channel_stats"`
-	Execution           executionInfo        `json:"execution"`
-	ProcessingNotes     []string             `json:"processing_notes,omitempty"`
+	Metadata             loudnessMetadata     `json:"metadata"`
+	Measurements         loudnessMeasurements `json:"measurements"`
+	ReferenceOffsetDB    float64              `json:"reference_offset_db"`
+	ChannelStats         []channelStat        `json:"channel_stats"`
+	Execution            executionInfo        `json:"execution"`
+	ProcessingNotes      []string             `json:"processing_notes,omitempty"`
+	AudioDurationSeconds float64              `json:"-"`
 }
 
 type channelStat struct {
@@ -91,8 +96,8 @@ type iirFilter struct {
 type measurementFloat float64
 
 func (m measurementFloat) MarshalJSON() ([]byte, error) {
-	v := math.Round(float64(m)*1e6) / 1e6
-	formatted := fmt.Sprintf("%.6f", v)
+	v := math.Round(float64(m)*1e4) / 1e4
+	formatted := fmt.Sprintf("%.4f", v)
 	if strings.Contains(formatted, ".") {
 		formatted = strings.TrimRight(formatted, "0")
 		if strings.HasSuffix(formatted, ".") {
@@ -190,7 +195,7 @@ func main() {
 	}
 	result.ProcessingNotes = append(result.ProcessingNotes, notes...)
 
-	info, err := gatherExecutionInfo(inputPath, start, result.DurationSeconds)
+	info, err := gatherExecutionInfo(inputPath, start, result.AudioDurationSeconds)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "execution info error:", err)
 		os.Exit(1)
@@ -365,7 +370,6 @@ func measureLoudness(path string, meta audioMetadata, targetSampleRate int) (lou
 	meanPowerWeighted = roundToDecimals(meanPowerWeighted, decimalDigits)
 	rms = roundToDecimals(rms, decimalDigits)
 	leqM = roundToDecimals(leqM, decimalDigits)
-	duration = roundToDecimals(duration, decimalDigits)
 
 	channelStats := make([]channelStat, meta.Channels)
 	for ch := 0; ch < meta.Channels; ch++ {
@@ -378,34 +382,61 @@ func measureLoudness(path string, meta audioMetadata, targetSampleRate int) (lou
 		}
 	}
 
-	result := loudnessResult{
+	metadataDuration := roundToDecimals(duration, decimalDigits)
+	audioDuration := duration
+
+	metadata := loudnessMetadata{
 		File:                path,
 		OriginalSampleRate:  meta.SampleRate,
 		EffectiveSampleRate: targetSampleRate,
 		Channels:            meta.Channels,
 		Frames:              int64(frames),
-		DurationSeconds:     duration,
+		DurationSeconds:     measurementFloat(metadataDuration),
+	}
+
+	result := loudnessResult{
+		Metadata: metadata,
 		Measurements: loudnessMeasurements{
 			LeqM:              measurementFloat(leqM),
 			LeqNoW:            measurementFloat(rms),
 			MeanPower:         measurementFloat(meanPower),
 			MeanPowerWeighted: measurementFloat(meanPowerWeighted),
 		},
-		ReferenceOffsetDB: referenceOffsetDB,
-		ChannelStats:      channelStats,
+		ReferenceOffsetDB:    referenceOffsetDB,
+		ChannelStats:         channelStats,
+		AudioDurationSeconds: audioDuration,
 	}
 
 	// Prefer measured duration when available from metadata, but only if close.
 	if meta.Duration > 0 && math.Abs(meta.Duration-duration) < 0.5 {
-		result.DurationSeconds = roundToDecimals(meta.Duration, decimalDigits)
+		audioDuration = meta.Duration
+		metadataDuration = roundToDecimals(meta.Duration, decimalDigits)
+		result.Metadata.DurationSeconds = measurementFloat(metadataDuration)
+		result.AudioDurationSeconds = audioDuration
 	}
 
 	return result, nil
 }
 
 func roundToDecimals(val float64, decimals int) float64 {
-	factor := math.Pow(10, float64(decimals))
-	return math.Round(val*factor) / factor
+	if decimals <= 0 || val == 0 {
+		return 0
+	}
+
+	sign := 1.0
+	if val < 0 {
+		sign = -1
+		val = -val
+	}
+
+	exponent := math.Floor(math.Log10(val))
+	scale := math.Pow(10, exponent-float64(decimals)+1)
+	if scale == 0 {
+		return sign * val
+	}
+
+	truncated := math.Trunc(val/scale) * scale
+	return sign * truncated
 }
 
 func gatherExecutionInfo(inputPath string, start time.Time, audioDuration float64) (executionInfo, error) {
