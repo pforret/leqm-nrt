@@ -6,3 +6,4 @@
 /tests/*
 /autom4te.cache/
 /.cache/
+/debug/
