@@ -3,6 +3,7 @@
 /.cache/
 /.idea/
 /autom4te.cache/
+/benchmark/examples/
 /debug/
 /src/*.o
 /src/.deps/*
