@@ -1,0 +1,1111 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="pforret/leqm-nrt ">
+      
+      
+      
+        <link rel="canonical" href="https://github.com/pforret/leqm-nrt/leqm/algorithm/">
+      
+      
+        <link rel="prev" href="../">
+      
+      
+        <link rel="next" href="../allenmetric/">
+      
+      
+        <link rel="alternate" type="application/rss+xml" title="RSS feed" href="../../feed_rss_created.xml">
+        <link rel="alternate" type="application/rss+xml" title="RSS feed of updated content" href="../../feed_rss_updated.xml">
+      
+      <link rel="icon" href="../../icon/android-chrome-192x192.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.49">
+    
+    
+      
+        <title>Leq(M) Computation Pipeline - pforret/leqm-nrt</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.6f8fc17f.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Nunito";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="red" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#leqm-computation-pipeline" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="pforret/leqm-nrt" class="md-header__button md-logo" aria-label="pforret/leqm-nrt" data-md-component="logo">
+      
+  <img src="../../icon/android-chrome-192x192.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            pforret/leqm-nrt
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Leq(M) Computation Pipeline
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+    
+  
+  pforret/leqm-nrt
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../blog/" class="md-tabs__link">
+          
+  
+  Blog
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../builds/" class="md-tabs__link">
+          
+  
+  Builds
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../goqm/" class="md-tabs__link">
+          
+  
+  Goqm
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  Leqm
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="pforret/leqm-nrt" class="md-nav__button md-logo" aria-label="pforret/leqm-nrt" data-md-component="logo">
+      
+  <img src="../../icon/android-chrome-192x192.png" alt="logo">
+
+    </a>
+    pforret/leqm-nrt
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    pforret/leqm-nrt
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Blog
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Blog
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../../blog/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    News
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Archive
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Builds
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Builds
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../builds/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    builds
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Goqm
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Goqm
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../goqm/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    goqm
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Leqm
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Leqm
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    leqm-nrt
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Leq(M) Computation Pipeline
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Leq(M) Computation Pipeline
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-signal-preparation" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Signal preparation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-m-weighting-filter-m_filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. M-weighting filter (M_filter)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-squaring-and-energy-accumulation" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Squaring and energy accumulation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-converting-to-leqm" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Converting to Leq(M)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-optional-gating-lkfsdialogue-intelligence" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Optional gating (LKFS/Dialogue Intelligence)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-output-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Output metrics
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../allenmetric/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Allen Metric Calculations
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bs_1770/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ITU-R BS.1770-5
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bs_2051/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ITU-R BS.2051-3
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../iso_2004/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ISO 21727:2004
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../iso_2005/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ISO 22234:2005
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../iso_2015/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ISO 2969:2015
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../iso_2016/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ISO 21727:2016
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-signal-preparation" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Signal preparation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-m-weighting-filter-m_filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. M-weighting filter (M_filter)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-squaring-and-energy-accumulation" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Squaring and energy accumulation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-converting-to-leqm" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Converting to Leq(M)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-optional-gating-lkfsdialogue-intelligence" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Optional gating (LKFS/Dialogue Intelligence)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-output-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Output metrics
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+<h1 id="leqm-computation-pipeline">Leq(M) Computation Pipeline<a class="headerlink" href="#leqm-computation-pipeline" title="Permanent link">&para;</a></h1>
+<p>This document summarises the mathematical steps the original C implementation (<code>src/leqm-nrt.c</code>) performs to derive the Leq(M) value defined in ISO 21727.  It tracks the code path taken by the default non–real‑time run (<code>worker_function</code>) and indicates where optional features (gating, Dolby DI, etc.) hook into the pipeline.</p>
+<h2 id="1-signal-preparation">1. Signal preparation<a class="headerlink" href="#1-signal-preparation" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Decode to linear PCM.</strong>  Depending on the build configuration the program uses either libsndfile or FFmpeg to decode the input stream to interleaved floating‑point samples (<code>sf_read_double</code> / <code>avcodec_receive_frame</code>).</li>
+<li><strong>Channel calibration (<code>inputcalib</code>, <code>chconf</code>).</strong>  Per-channel gain coefficients (normally unity) can be supplied to emulate cinema B-chain alignment.  They scale the sample amplitudes before further processing (see <code>worker_function</code>, around lines 4500–4540).</li>
+<li><strong>Block segmentation.</strong>  Audio is broken into blocks of <code>buffersizems</code> milliseconds (default 850 ms, cf. lines 638 and 1263).  Each worker thread receives <code>nsamples = samplerate * buffersizems / 1000 * nch</code> interleaved samples.</li>
+<li><strong>Optional resampling.</strong>  When libsndfile is used at non-48 kHz sample rates the code can invoke the convolutional filter bank to approximate the official transfer function.  Recent builds favour the IIR implementation in <code>M_filter</code> for the commonly used 48 kHz rate.</li>
+</ol>
+<h2 id="2-m-weighting-filter-m_filter">2. M-weighting filter (<code>M_filter</code>)<a class="headerlink" href="#2-m-weighting-filter-m_filter" title="Permanent link">&para;</a></h2>
+<p>The <a href="../iso_2016/">ISO 21727</a> M-weighting curve is implemented as a cascade of recursive biquads.  The C code stores pre-computed denominator (<code>a</code>) and numerator (<code>b</code>) coefficients for 44.1 kHz and 48 kHz sampling rates (see table starting at line ~7330).  For a sample sequence <span class="arithmatex">\(x[n]\)</span> the filter output <span class="arithmatex">\(y[n]\)</span> is computed by</p>
+<div class="arithmatex">\[
+ y[n] = \sum_{k=0}^{5} b_k x[n-k] - \sum_{k=1}^{5} a_k y[n-k]
+\]</div>
+<p>The difference equation is realised inside <code>M_filter</code>, with explicit case handling for the first few samples until enough history is populated (lines 7350–7460).  This gives a weighted pressure signal <span class="arithmatex">\(p_M[n]\)</span> that mimics the standard’s equal-loudness curve.</p>
+<p>When <code>--convpoints</code> is enabled the program instead convolves each block with the published 21-tap impulse response (functions <code>convolv_buff</code> and <code>loadIR</code>), but both branches ultimately produce the weighted signal <code>convolvedbuffer</code> used in the subsequent energy computation.</p>
+<h2 id="3-squaring-and-energy-accumulation">3. Squaring and energy accumulation<a class="headerlink" href="#3-squaring-and-energy-accumulation" title="Permanent link">&para;</a></h2>
+<p>Within each worker block, the code performs three accumulations (lines 4518–4550):</p>
+<ol>
+<li><strong>Weighted energy.</strong>  The weighted samples are squared (<code>rectify</code>) and accumulated per channel (<code>accumulatech</code>) into <code>chsumaccumulator_conv</code>.</li>
+<li><strong>Unweighted energy.</strong>  The unfiltered samples are squared and accumulated into <code>chsumaccumulator_norm</code> (used for the "Leq(noW)" diagnostic value).</li>
+<li><strong>Total sums.</strong>  After the block is processed, <code>sumsamples</code> adds the channel sums into a shared <code>Sum</code> struct (<code>totsum</code>).  The struct stores:</li>
+<li><code>sum</code> – cumulative unweighted energy <span class="arithmatex">\(\sum x^2\)</span></li>
+<li><code>csum</code> – cumulative weighted energy <span class="arithmatex">\(\sum p_M^2\)</span></li>
+<li><code>nsamples</code> – total number of mono samples accumulated (frames × channels)</li>
+</ol>
+<p>These arrays are protected by a mutex when multiple threads run in parallel.</p>
+<h2 id="4-converting-to-leqm">4. Converting to Leq(M)<a class="headerlink" href="#4-converting-to-leqm" title="Permanent link">&para;</a></h2>
+<p>Once all samples are processed, <code>meanoverduration</code> (lines 5856–5871) performs the ISO integration:</p>
+<div class="arithmatex">\[
+ L_{\mathrm{eq(M)}} = 20 \log_{10} \left(\sqrt{\frac{\texttt{csum}}{\texttt{nsamples}}}\right) + 108.0103
+\]</div>
+<p>The same routine also produces the unweighted RMS level from <code>sum</code>.  The constant <code>108.010299957</code> is derived from the reference sound pressure (20 µPa) and the nominal calibration tone level (–20 dBFS), as documented in the inline comments around lines 5838–5869.</p>
+<p>Because the accumulation is linear over sample squares, the discrete formulation faithfully approximates the continuous integral used by the standard:</p>
+<div class="arithmatex">\[
+ L_{eq(M)} = 10 \log_{10}\left( \frac{1}{T} \int_0^T \frac{p_M(t)^2}{p_0^2}\, dt \right)
+\]</div>
+<p>where <span class="arithmatex">\(T\)</span> is the total observation time and <span class="arithmatex">\(p_0 = 20\,\mu\text{Pa}\)</span>.  In the implementation <span class="arithmatex">\(p_M(t)\)</span> is represented by the filtered discrete sequence and the integral is replaced by the sample mean of squared values.</p>
+<h2 id="5-optional-gating-lkfsdialogue-intelligence">5. Optional gating (LKFS/Dialogue Intelligence)<a class="headerlink" href="#5-optional-gating-lkfsdialogue-intelligence" title="Permanent link">&para;</a></h2>
+<p>The alternative worker <code>worker_function_gated2</code> adds loudness gating similar to ITU-R BS.1770:</p>
+<ol>
+<li><strong>Short-term windows.</strong>  <code>calcSampleStepLG</code> derives the hop size <code>ops</code> from the configured overlap (default 75 %), yielding a 400 ms gating block as required by the standard (lines 1853–1895).</li>
+<li><strong>Pre-filtering for gating.</strong>  Each gate block is filtered with the K-weighting stages <code>K_filter_stage1/2</code> and rectified (lines 4573–4632).</li>
+<li><strong>Relative and absolute gates.</strong>  Level and dialogue gates are applied depending on <code>chgateconf</code>, <code>levelgate</code>, and <code>dolbydi</code> settings.  If a block energy falls below threshold it is discarded before the final mean is computed (see <code>lkfs_finalcomputation</code> and <code>dolbydifinalcomputation2</code>).</li>
+</ol>
+<p>These gated sums feed either an LKFS measurement or a dialogue-specific variant, but the core Leq(M) channel is unaffected unless a level gate is explicitly enabled.</p>
+<h2 id="6-output-metrics">6. Output metrics<a class="headerlink" href="#6-output-metrics" title="Permanent link">&para;</a></h2>
+<p>The program finally reports:</p>
+<ul>
+<li><code>Leq(M)</code> – weighted level as described above.</li>
+<li><code>Leq(noW)</code> – unweighted level derived from <code>sum</code>.</li>
+<li><code>True Peak</code> (optional) – computed by the oversampling routine <code>truepeakcheck</code> which upsamples each channel (default ×4) and tracks the maximum squared sample.</li>
+<li>Logging arrays for <code>Leq(M,10m)</code> and time-varying loudness when the respective switches are set (see <code>logleqm</code> and <code>logleqm10</code>).</li>
+</ul>
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
+<p>The essential Leq(M) calculation in <code>leqm-nrt</code> can therefore be summarised as:</p>
+<ol>
+<li>Decode audio, calibrate per channel, and break into manageable blocks.</li>
+<li>Apply the M-weighting filter to each block (IIR or FIR implementation).</li>
+<li>Square and accumulate both weighted and unweighted energies over all samples.</li>
+<li>Divide by the total sample count and convert to dB SPL using the ISO reference offset.</li>
+<li>Optionally perform gating before the final mean is formed if LKFS/DI modes are active.</li>
+</ol>
+<p>Every step maps directly to well-documented functions in <code>src/leqm-nrt.c</code>, so the mathematical intent is visible and aligns with ISO 21727’s formal definition of Leq(M).</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      &copy; 2025 pforret/leqm-nrt &bull; pforret
+    </div>
+  
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.copy", "header.autohide", "navigation.instant", "navigation.integrate", "navigation.tabs", "navigation.tabs.sticky", "navigation.tracking", "search.highlight", "search.suggest"], "search": "../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.88dd0f4e.min.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
