@@ -1,5 +1,8 @@
-tests/*
-src/*.o
-src/.deps/*
-src/leqm-nrt
-
+.env
+/.idea
+/src/*.o
+/src/.deps/*
+/src/leqm-nrt
+/tests/*
+/autom4te.cache/
+/.cache/
