@@ -13,3 +13,4 @@
 compile
 install-sh
 missing
+/depcomp
