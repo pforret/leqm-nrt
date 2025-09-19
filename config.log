@@ -30,8 +30,8 @@ Kernel configured for up to 14 processors.
 Processor type: arm64e (ARM64E)
 Processors active: 0 1 2 3 4 5 6 7 8 9 10 11 12 13
 Primary memory available: 48.00 gigabytes
-Default processor set: 813 tasks, 4481 threads, 14 processors
-Load average: 1.85, Mach factor: 12.14
+Default processor set: 804 tasks, 4404 threads, 14 processors
+Load average: 3.07, Mach factor: 10.92
 /bin/machine           = unknown
 /usr/bin/oslevel       = unknown
 /bin/universe          = unknown
@@ -202,7 +202,7 @@ configure:5084: checking for av_get_channel_layout in -lavutil
 configure:5113: gcc -o conftest -g -O2 -I/opt/homebrew/include -L/opt/homebrew/lib conftest.c -lavutil   >&5
 Undefined symbols for architecture arm64:
   "_av_get_channel_layout", referenced from:
-      _main in conftest-081084.o
+      _main in conftest-39d17b.o
 ld: symbol(s) not found for architecture arm64
 clang: error: linker command failed with exit code 1 (use -v to see invocation)
 configure:5113: $? = 1

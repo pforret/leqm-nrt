@@ -61,7 +61,7 @@ type loudnessMetadata struct {
 type loudnessResult struct {
 	Metadata             loudnessMetadata     `json:"metadata"`
 	Measurements         loudnessMeasurements `json:"measurements"`
-	ReferenceOffsetDB    float64              `json:"reference_offset_db"`
+	//ReferenceOffsetDB    float64              `json:"reference_offset_db"`
 	ChannelStats         []channelStat        `json:"channel_stats"`
 	Execution            executionInfo        `json:"execution"`
 	ProcessingNotes      []string             `json:"processing_notes,omitempty"`
@@ -402,7 +402,7 @@ func measureLoudness(path string, meta audioMetadata, targetSampleRate int) (lou
 			MeanPower:         measurementFloat(meanPower),
 			MeanPowerWeighted: measurementFloat(meanPowerWeighted),
 		},
-		ReferenceOffsetDB:    referenceOffsetDB,
+		//ReferenceOffsetDB:    referenceOffsetDB,
 		ChannelStats:         channelStats,
 		AudioDurationSeconds: audioDuration,
 	}
