@@ -5,6 +5,9 @@
 /autom4te.cache/
 /benchmark/examples/
 /debug/
+/depcomp
+/golang/.build
+/golang/.gocache
 /src/*.o
 /src/.deps/*
 /src/leqm-nrt
@@ -13,4 +16,3 @@
 compile
 install-sh
 missing
-/depcomp

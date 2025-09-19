@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# benchmark.sh - Benchmark script for leqm_macos
+# bench_leqm.sh - Benchmark script for leqm_macos
 # Processes all .wav files in /benchmark/examples and generates a markdown report
 
 set -euo pipefail
@@ -11,7 +11,7 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 EXAMPLES_DIR="$SCRIPT_DIR/examples"
 LEQM_EXECUTABLE="$PROJECT_ROOT/build/leqm_macos"
 DATE=$(date +"%Y-%m-%d")
-OUTPUT_FILE="$SCRIPT_DIR/leqm_macos.$DATE.md"
+OUTPUT_FILE="$SCRIPT_DIR/$(basename "$LEQM_EXECUTABLE").$DATE.md"
 
 # Colors for output
 RED='\033[0;31m'
@@ -74,6 +74,7 @@ check_prerequisites() {
 parse_leqm_output() {
     local output="$1"
     local filename="$2"
+    local processing_time_ms="$3"
 
     # Extract values using grep and awk
     local sample_rate=$(echo "$output" | grep "Sample rate:" | awk '{print $3}')
@@ -83,15 +84,29 @@ parse_leqm_output() {
 
     # Calculate duration in seconds
     local duration=""
+    local speed_index=""
     if [[ -n "$sample_rate" && -n "$frames" && "$sample_rate" != "0" ]]; then
         duration=$(echo "scale=2; $frames / $sample_rate" | bc -l 2>/dev/null || echo "N/A")
+
+        # Calculate speed index (audio_duration / processing_time)
+        if [[ "$duration" != "N/A" && -n "$processing_time_ms" && "$processing_time_ms" != "0" ]]; then
+            local processing_time_sec=$(echo "scale=3; $processing_time_ms / 1000" | bc -l 2>/dev/null || echo "0")
+            if [[ "$processing_time_sec" != "0" ]]; then
+                speed_index=$(echo "scale=1; $duration / $processing_time_sec" | bc -l 2>/dev/null || echo "N/A")
+                speed_index="${speed_index}x"
+            else
+                speed_index="N/A"
+            fi
+        else
+            speed_index="N/A"
+        fi
     fi
 
     # Check if measurement was successful
     if [[ -z "$leq_m" ]]; then
-        echo "| $filename | ERROR | - | - | - | - | Failed to measure |"
+        echo "| $filename | ERROR | - | - | - | - | - | - | Failed to measure |"
     else
-        echo "| $filename | $leq_m dB | ${sample_rate:-N/A} Hz | ${channels:-N/A} | ${frames:-N/A} | ${duration:-N/A}s | ✓ |"
+        echo "| $filename | $leq_m dB | ${sample_rate:-N/A} Hz | ${channels:-N/A} | ${frames:-N/A} | ${duration:-N/A}s | ${processing_time_ms:-N/A}ms | ${speed_index:-N/A} | ✓ |"
     fi
 }
 
@@ -103,17 +118,26 @@ process_wav_file() {
 
     log "Processing: $filename" >&2
 
+    # Measure processing time using higher precision
+    local start_time end_time processing_time_ms
+
+    # For more precise timing, we'll use time built-in and capture it
+    start_time=$(python3 -c "import time; print(int(time.time() * 1000))" 2>/dev/null || echo "$(date +%s)000")
+
     # Run leqm_macos and capture output
     local output
     local exit_code=0
 
     output=$("$LEQM_EXECUTABLE" "$wav_file" 2>&1) || exit_code=$?
 
+    end_time=$(python3 -c "import time; print(int(time.time() * 1000))" 2>/dev/null || echo "$(date +%s)000")
+    processing_time_ms=$((end_time - start_time))
+
     if [[ $exit_code -ne 0 ]]; then
         warn "leqm_macos returned exit code $exit_code for $filename" >&2
-        echo "| $filename | ERROR | - | - | - | - | Exit code: $exit_code |"
+        echo "| $filename | ERROR | - | - | - | - | - | - | Exit code: $exit_code |"
     else
-        parse_leqm_output "$output" "$filename"
+        parse_leqm_output "$output" "$filename" "$processing_time_ms"
     fi
 }
 
@@ -135,13 +159,15 @@ This report contains Leq(M) measurements for all WAV files in the examples direc
 
 ## Results
 
-| File | Leq(M) | Sample Rate | Channels | Frames | Duration | Status |
-|------|--------|-------------|----------|--------|----------|---------|
+| File | Leq(M) | Sample Rate | Channels | Frames | Duration | Processing Time | Speed Index | Status |
+|------|--------|-------------|----------|--------|----------|-----------------|-------------|--------|
 EOF
 
     # Process all WAV files
     local processed_count=0
     local success_count=0
+    local total_processing_time=0
+    local total_audio_duration=0
     binary_version=$("$LEQM_EXECUTABLE" --version 2>&1 | tail -1 || echo "Version info not available")
 
     while IFS= read -r -d '' wav_file; do
@@ -149,11 +175,33 @@ EOF
         echo "$result" >> "$OUTPUT_FILE"
         ((processed_count++))
 
-        # Count successful measurements
+        # Count successful measurements and extract timing data
         if [[ "$result" != *"ERROR"* ]]; then
             ((success_count++))
+
+            # Extract processing time and duration for overall statistics
+            local proc_time_ms=$(echo "$result" | awk -F'|' '{print $8}' | sed 's/ms//' | xargs)
+            local duration_s=$(echo "$result" | awk -F'|' '{print $7}' | sed 's/s//' | xargs)
+
+            if [[ "$proc_time_ms" =~ ^[0-9]+$ ]]; then
+                total_processing_time=$((total_processing_time + proc_time_ms))
+            fi
+
+            if [[ "$duration_s" =~ ^[0-9.]+$ ]]; then
+                total_audio_duration=$(echo "$total_audio_duration + $duration_s" | bc -l 2>/dev/null || echo "$total_audio_duration")
+            fi
         fi
     done < <(find "$EXAMPLES_DIR" -name "*.wav" -type f -print0 | sort -z)
+
+    # Calculate overall speed index
+    local overall_speed_index="N/A"
+    if [[ $total_processing_time -gt 0 && $(echo "$total_audio_duration > 0" | bc -l 2>/dev/null) == "1" ]]; then
+        local total_processing_sec=$(echo "scale=3; $total_processing_time / 1000" | bc -l 2>/dev/null || echo "0")
+        if [[ $(echo "$total_processing_sec > 0" | bc -l 2>/dev/null) == "1" ]]; then
+            overall_speed_index=$(echo "scale=1; $total_audio_duration / $total_processing_sec" | bc -l 2>/dev/null || echo "N/A")
+            overall_speed_index="${overall_speed_index}x"
+        fi
+    fi
 
     # Add footer to report
     cat >> "$OUTPUT_FILE" << EOF
@@ -163,6 +211,12 @@ EOF
 - **Total files processed:** $processed_count
 - **Successful measurements:** $success_count
 - **Failed measurements:** $((processed_count - success_count))
+
+### Performance
+
+- **Total audio duration:** $(printf "%.2f" "$total_audio_duration")s
+- **Total processing time:** ${total_processing_time}ms ($(echo "scale=2; $total_processing_time / 1000" | bc -l 2>/dev/null || echo "N/A")s)
+- **Overall speed index:** $overall_speed_index
 
 ## Technical Details
 
