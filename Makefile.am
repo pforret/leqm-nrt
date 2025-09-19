@@ -1,29 +1,31 @@
 AUTOMAKE_OPTIONS = foreign
-SUBDIRS = src 
+SUBDIRS = src
 dist_doc_DATA = README.md
 
+# Define temp directory for build artifacts
+TEMPDIR = temp
 
-# Debug build settings
-#
-DBGDIR = debug
+# Debug build settings moved to temp directory
+DBGDIR = $(TEMPDIR)/debug
 DBGEXE = $(DBGDIR)/leqm-nrt
 DBGOBJS = $(addprefix $(DBGDIR)/, $(OBJS))
-DBGCFLAGS = -g3 -O0 -DDEBUG -DHAVE_LIBSNDFILE -DHAVE_LIBDI -DVERSION=\"0.20\" -I/usr/include/di -lm -lpthread -lrt -lsndfile -L/usr/lib/di -o src/leqm-nrt  src/leqm-nrt.c -ldi -lrt -lpthread -lm -lsndfile 
-#DBGCFLAGS = -g3 -O0 -DDEBUG -DHAVE_LIBSNDFILE -DVERSION=\"0.20\" -lm -lpthread -lrt -lsndfile -o src/leqm-nrt  src/leqm-nrt.c -lrt -lpthread -lm -lsndfile 
-#DBGCFLAGS = -g3 -O0 -DDEBUG -DHAVE_LIBAVCODEC -DHAVE_LIBAVFORMAT -DHAVE_LIBAVUTIL -DHAVE_LIBDI -DVERSION=\"0.20\" -I/usr/include/ffmpeg -I/usr/include/di -lm -lpthread -lrt -lavformat -lavcodec -lavutil -L/usr/lib/di -o src/leqm-nrt  src/leqm-nrt.c -ldi -lrt -lpthread -lm -lavutil -lavformat -lavcodec
-#DBGCFLAGS = -g3 -O0 -DDEBUG -DHAVE_LIBAVCODEC -DHAVE_LIBAVFORMAT -DHAVE_LIBAVUTIL -DVERSION=\"0.20\" -I/usr/include/ffmpeg -lm -lpthread -lrt -lavformat -lavcodec -lavutil -o src/leqm-nrt  src/leqm-nrt.c -lrt -lpthread -lm -lavutil -lavformat -lavcodec
+DBGCFLAGS = -g3 -O0 -DDEBUG -DHAVE_LIBSNDFILE -DHAVE_LIBDI -DVERSION=\"0.20\" -I/usr/include/di -lm -lpthread -lrt -lsndfile -L/usr/lib/di -o src/leqm-nrt  src/leqm-nrt.c -ldi -lrt -lpthread -lm -lsndfile
 
-
-
-#
 # Debug rules
-#
 debug: $(DBGEXE)
 
 $(DBGEXE): $(DBGOBJS)
+	mkdir -p $(DBGDIR)
 	$(CC) $(DBGCFLAGS) -o $(DBGEXE) $^
+
 $(DBGDIR)/%.o: %.c
+	mkdir -p $(DBGDIR)
 	$(CC) -c $(DBGCFLAGS) -o $@ $<
 
+# Clean temp directory and all build artifacts
+clean-local:
+	rm -rf $(TEMPDIR)
+	rm -rf build
+
 debug-clean:
-	rm -rf $(DBGDIR)/leqm-nrt
+	rm -rf $(DBGDIR)

@@ -32,6 +32,7 @@ fi
 
 echo "🧹 Cleaning previous build artifacts..."
 make clean 2>/dev/null || true
+rm -rf temp
 rm -f missing config.cache
 rm -f src/Makefile src/Makefile.in
 

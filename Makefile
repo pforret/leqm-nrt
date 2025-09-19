@@ -333,15 +333,17 @@ top_build_prefix =
 top_builddir = .
 top_srcdir = .
 AUTOMAKE_OPTIONS = foreign
-SUBDIRS = src 
+SUBDIRS = src
 dist_doc_DATA = README.md
 
-# Debug build settings
-#
-DBGDIR = debug
+# Define temp directory for build artifacts
+TEMPDIR = temp
+
+# Debug build settings moved to temp directory
+DBGDIR = $(TEMPDIR)/debug
 DBGEXE = $(DBGDIR)/leqm-nrt
 DBGOBJS = $(addprefix $(DBGDIR)/, $(OBJS))
-DBGCFLAGS = -g3 -O0 -DDEBUG -DHAVE_LIBSNDFILE -DHAVE_LIBDI -DVERSION=\"0.20\" -I/usr/include/di -lm -lpthread -lrt -lsndfile -L/usr/lib/di -o src/leqm-nrt  src/leqm-nrt.c -ldi -lrt -lpthread -lm -lsndfile 
+DBGCFLAGS = -g3 -O0 -DDEBUG -DHAVE_LIBSNDFILE -DHAVE_LIBDI -DVERSION=\"0.20\" -I/usr/include/di -lm -lpthread -lrt -lsndfile -L/usr/lib/di -o src/leqm-nrt  src/leqm-nrt.c -ldi -lrt -lpthread -lm -lsndfile
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 
@@ -765,7 +767,7 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-recursive
 
-clean-am: clean-generic mostlyclean-am
+clean-am: clean-generic clean-local mostlyclean-am
 
 distclean: distclean-recursive
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
@@ -836,12 +838,12 @@ uninstall-am: uninstall-dist_docDATA
 
 .PHONY: $(am__recursive_targets) CTAGS GTAGS TAGS all all-am \
 	am--refresh check check-am clean clean-cscope clean-generic \
-	cscope cscopelist-am ctags ctags-am dist dist-all dist-bzip2 \
-	dist-bzip3 dist-gzip dist-lzip dist-shar dist-tarZ dist-xz \
-	dist-zip dist-zstd distcheck distclean distclean-generic \
-	distclean-hdr distclean-tags distcleancheck distdir \
-	distuninstallcheck dvi dvi-am html html-am info info-am \
-	install install-am install-data install-data-am \
+	clean-local cscope cscopelist-am ctags ctags-am dist dist-all \
+	dist-bzip2 dist-bzip3 dist-gzip dist-lzip dist-shar dist-tarZ \
+	dist-xz dist-zip dist-zstd distcheck distclean \
+	distclean-generic distclean-hdr distclean-tags distcleancheck \
+	distdir distuninstallcheck dvi dvi-am html html-am info \
+	info-am install install-am install-data install-data-am \
 	install-dist_docDATA install-dvi install-dvi-am install-exec \
 	install-exec-am install-html install-html-am install-info \
 	install-info-am install-man install-pdf install-pdf-am \
@@ -853,22 +855,25 @@ uninstall-am: uninstall-dist_docDATA
 
 .PRECIOUS: Makefile
 
-#DBGCFLAGS = -g3 -O0 -DDEBUG -DHAVE_LIBSNDFILE -DVERSION=\"0.20\" -lm -lpthread -lrt -lsndfile -o src/leqm-nrt  src/leqm-nrt.c -lrt -lpthread -lm -lsndfile 
-#DBGCFLAGS = -g3 -O0 -DDEBUG -DHAVE_LIBAVCODEC -DHAVE_LIBAVFORMAT -DHAVE_LIBAVUTIL -DHAVE_LIBDI -DVERSION=\"0.20\" -I/usr/include/ffmpeg -I/usr/include/di -lm -lpthread -lrt -lavformat -lavcodec -lavutil -L/usr/lib/di -o src/leqm-nrt  src/leqm-nrt.c -ldi -lrt -lpthread -lm -lavutil -lavformat -lavcodec
-#DBGCFLAGS = -g3 -O0 -DDEBUG -DHAVE_LIBAVCODEC -DHAVE_LIBAVFORMAT -DHAVE_LIBAVUTIL -DVERSION=\"0.20\" -I/usr/include/ffmpeg -lm -lpthread -lrt -lavformat -lavcodec -lavutil -o src/leqm-nrt  src/leqm-nrt.c -lrt -lpthread -lm -lavutil -lavformat -lavcodec
 
-#
 # Debug rules
-#
 debug: $(DBGEXE)
 
 $(DBGEXE): $(DBGOBJS)
+	mkdir -p $(DBGDIR)
 	$(CC) $(DBGCFLAGS) -o $(DBGEXE) $^
+
 $(DBGDIR)/%.o: %.c
+	mkdir -p $(DBGDIR)
 	$(CC) -c $(DBGCFLAGS) -o $@ $<
 
+# Clean temp directory and all build artifacts
+clean-local:
+	rm -rf $(TEMPDIR)
+	rm -rf build
+
 debug-clean:
-	rm -rf $(DBGDIR)/leqm-nrt
+	rm -rf $(DBGDIR)
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
