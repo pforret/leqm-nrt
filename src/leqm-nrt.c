@@ -125,7 +125,7 @@
 // When using DI there are some constraints as to the buffersize
 // The same is true for LKFS
 
-// Version 0.0.20 (C) Luca Trisciani 2011-2013, 2017-2020
+// Version 0.0.30 (C) Luca Trisciani 2011-2013, 2017-2020
 // Tool from the DCP-Werkstatt Software Bundle
 
 

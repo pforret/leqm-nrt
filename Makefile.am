@@ -9,7 +9,7 @@ TEMPDIR = temp
 DBGDIR = $(TEMPDIR)/debug
 DBGEXE = $(DBGDIR)/leqm-nrt
 DBGOBJS = $(addprefix $(DBGDIR)/, $(OBJS))
-DBGCFLAGS = -g3 -O0 -DDEBUG -DHAVE_LIBSNDFILE -DHAVE_LIBDI -DVERSION=\"0.20\" -I/usr/include/di -lm -lpthread -lrt -lsndfile -L/usr/lib/di -o src/leqm-nrt  src/leqm-nrt.c -ldi -lrt -lpthread -lm -lsndfile
+DBGCFLAGS = -g3 -O0 -DDEBUG -DHAVE_LIBSNDFILE -DHAVE_LIBDI -DVERSION=\"0.30\" -I/usr/include/di -lm -lpthread -lrt -lsndfile -L/usr/lib/di -o src/leqm-nrt  src/leqm-nrt.c -ldi -lrt -lpthread -lm -lsndfile
 
 # Debug rules
 debug: $(DBGEXE)

@@ -50,7 +50,32 @@ echo "🏗️  Building leqm-nrt..."
 make -j$(sysctl -n hw.ncpu)
 
 echo "📦 Creating macOS binary build/leqm_macos..."
-cd src && make leqm_macos && cd ..
+# Ensure build directory exists
+mkdir -p build
+
+# Copy the working binary with proper permissions
+echo "   Copying src/leqm-nrt to build/leqm_macos..."
+cp src/leqm-nrt build/leqm_macos
+chmod +x build/leqm_macos
+
+# Verify the copy worked
+echo "   Verifying binary works..."
+if ./build/leqm_macos --version >/dev/null 2>&1; then
+    echo "   ✅ Binary verification successful"
+else
+    echo "   ❌ Binary verification failed - trying alternative copy method"
+    # Try alternative copy method
+    rm -f build/leqm_macos
+    install -m 755 src/leqm-nrt build/leqm_macos
+
+    # Final verification
+    if ./build/leqm_macos --version >/dev/null 2>&1; then
+        echo "   ✅ Alternative copy method successful"
+    else
+        echo "   ❌ Build verification failed. Please run binary directly from src/leqm-nrt"
+        echo "   Binary is available at: $(pwd)/src/leqm-nrt"
+    fi
+fi
 
 echo "✅ Build completed successfully!"
 echo ""

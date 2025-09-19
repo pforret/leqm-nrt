@@ -270,15 +270,15 @@ OBJEXT = o
 PACKAGE = leqm-nrt
 PACKAGE_BUGREPORT = luca.trisciani@dcp-werkstatt.ch
 PACKAGE_NAME = leqm-nrt
-PACKAGE_STRING = leqm-nrt 0.20
+PACKAGE_STRING = leqm-nrt 0.30
 PACKAGE_TARNAME = leqm-nrt
 PACKAGE_URL = 
-PACKAGE_VERSION = 0.20
+PACKAGE_VERSION = 0.30
 PATH_SEPARATOR = :
 SET_MAKE = 
 SHELL = /bin/sh
 STRIP = 
-VERSION = 0.20
+VERSION = 0.30
 abs_builddir = /Users/pforret/Code/pforret/packages/leqm-nrt
 abs_srcdir = /Users/pforret/Code/pforret/packages/leqm-nrt
 abs_top_builddir = /Users/pforret/Code/pforret/packages/leqm-nrt
@@ -343,7 +343,7 @@ TEMPDIR = temp
 DBGDIR = $(TEMPDIR)/debug
 DBGEXE = $(DBGDIR)/leqm-nrt
 DBGOBJS = $(addprefix $(DBGDIR)/, $(OBJS))
-DBGCFLAGS = -g3 -O0 -DDEBUG -DHAVE_LIBSNDFILE -DHAVE_LIBDI -DVERSION=\"0.20\" -I/usr/include/di -lm -lpthread -lrt -lsndfile -L/usr/lib/di -o src/leqm-nrt  src/leqm-nrt.c -ldi -lrt -lpthread -lm -lsndfile
+DBGCFLAGS = -g3 -O0 -DDEBUG -DHAVE_LIBSNDFILE -DHAVE_LIBDI -DVERSION=\"0.30\" -I/usr/include/di -lm -lpthread -lrt -lsndfile -L/usr/lib/di -o src/leqm-nrt  src/leqm-nrt.c -ldi -lrt -lpthread -lm -lsndfile
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 

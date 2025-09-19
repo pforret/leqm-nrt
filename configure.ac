@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 #AC_PREREQ([2.69])
-AC_INIT([leqm-nrt], [0.20], [luca.trisciani@dcp-werkstatt.ch])
+AC_INIT([leqm-nrt], [0.30], [luca.trisciani@dcp-werkstatt.ch])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_CONFIG_SRCDIR([src/leqm-nrt.c])
 

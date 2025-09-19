@@ -34,12 +34,12 @@ This report contains Leq(M) measurements for all WAV files in the examples direc
 
 ### Tool Information
 
-This is leqm-nrt version 0.20.
+This is leqm-nrt version 0.30.
 
 ### System Information
 - **Platform:** Darwin
 - **Architecture:** arm64
-- **Date:** Fri Sep 19 13:23:29 CEST 2025
+- **Date:** Fri Sep 19 13:40:41 CEST 2025
 - **Working Directory:** /Users/pforret/Code/pforret/packages/leqm-nrt
 
 ---

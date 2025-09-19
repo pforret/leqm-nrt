@@ -41,13 +41,20 @@ check_prerequisites() {
     fi
 
     if [[ ! -f "$LEQM_EXECUTABLE" ]]; then
-        error "leqm_macos executable not found: $LEQM_EXECUTABLE"
-        error "Please build the project first using: make"
-        exit 1
+        warn "leqm_macos executable not found: $LEQM_EXECUTABLE"
+
+        # Try the original binary as fallback
+        LEQM_EXECUTABLE="$PROJECT_ROOT/src/leqm-nrt"
+        if [[ -f "$LEQM_EXECUTABLE" && -x "$LEQM_EXECUTABLE" ]]; then
+            warn "Using fallback binary: $LEQM_EXECUTABLE"
+        else
+            error "No usable executable found. Please build the project first using: make"
+            exit 1
+        fi
     fi
 
     if [[ ! -x "$LEQM_EXECUTABLE" ]]; then
-        error "leqm_macos is not executable: $LEQM_EXECUTABLE"
+        error "Executable is not runnable: $LEQM_EXECUTABLE"
         exit 1
     fi
 
