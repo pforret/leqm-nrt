@@ -45,7 +45,7 @@ gnuplot -e "plot \"logfile.txt\" u 1:2; pause -1"
 it is possible to directly plot the logged data
 ```
 
-## goqm - golang version of leqm-nrt
+## [goqm](goqm/index.md) - golang version of leqm-nrt
 
 Converted to golang by Peter Forret & Codex CLI
 
