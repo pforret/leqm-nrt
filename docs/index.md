@@ -1,4 +1,4 @@
-# pforret/leqm-nrt
+# [pforret/leqm-nrt](https://github.com/pforret/leqm-nrt)
 
 ## Description
 
@@ -11,6 +11,8 @@
 
 
 ## [goqm](goqm/index.md) - golang version of leqm-nrt
+
+## [builds](builds/index.md) - Precompiled binaries
 
 * Original code by Luca Trisciani - 2011-2013, 2017-2020
 * Forked by Peter Forret - 2024-2025

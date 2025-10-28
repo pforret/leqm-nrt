@@ -15,6 +15,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/go-audio/wav"
 )
 
 const (
@@ -59,13 +61,13 @@ type loudnessMetadata struct {
 }
 
 type loudnessResult struct {
-	Metadata             loudnessMetadata     `json:"metadata"`
-	Measurements         loudnessMeasurements `json:"measurements"`
-	//ReferenceOffsetDB    float64              `json:"reference_offset_db"`
-	ChannelStats         []channelStat        `json:"channel_stats"`
-	Execution            executionInfo        `json:"execution"`
-	ProcessingNotes      []string             `json:"processing_notes,omitempty"`
-	AudioDurationSeconds float64              `json:"-"`
+	Metadata     loudnessMetadata     `json:"metadata"`
+	Measurements loudnessMeasurements `json:"measurements"`
+	ReferenceOffsetDB float64         `json:"reference_offset_db"`
+	ChannelStats         []channelStat `json:"channel_stats"`
+	Execution            executionInfo `json:"execution"`
+	ProcessingNotes      []string      `json:"processing_notes,omitempty"`
+	AudioDurationSeconds float64       `json:"-"`
 }
 
 type channelStat struct {
@@ -171,24 +173,76 @@ func main() {
 		os.Exit(1)
 	}
 
-	meta, err := probeAudio(inputPath)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "ffprobe error:", err)
-		os.Exit(1)
-	}
-	if meta.Channels <= 0 {
-		fmt.Fprintln(os.Stderr, "no audio stream detected")
-		os.Exit(1)
+	var (
+		meta             audioMetadata
+		floatSamples     []float64
+		targetSampleRate int
+		notes            []string
+	)
+
+	ext := strings.ToLower(filepath.Ext(inputPath))
+	needsFFmpeg := true
+
+	if ext == ".wav" {
+		wavSamples, wavMeta, wavErr := decodeWAV(inputPath)
+		if wavErr != nil {
+			fmt.Fprintln(os.Stderr, "wav decode error:", wavErr)
+			os.Exit(1)
+		}
+		if _, ok := mWeightingCoefficients[wavMeta.SampleRate]; ok {
+			meta = wavMeta
+			floatSamples = wavSamples
+			targetSampleRate = wavMeta.SampleRate
+			needsFFmpeg = false
+		} else {
+			// WAV file with unsupported sample rate - resample it ourselves
+			targetSampleRate = 48000
+			resampled, resampleErr := resampleAudio(wavSamples, wavMeta.SampleRate, targetSampleRate, wavMeta.Channels)
+			if resampleErr != nil {
+				fmt.Fprintln(os.Stderr, "resample error:", resampleErr)
+				os.Exit(1)
+			}
+			meta = audioMetadata{
+				SampleRate: targetSampleRate,
+				Channels:   wavMeta.Channels,
+				Duration:   wavMeta.Duration,
+			}
+			floatSamples = resampled
+			needsFFmpeg = false
+			notes = append(notes, fmt.Sprintf("resampled from %d Hz to %d Hz for M-weighting filter", wavMeta.SampleRate, targetSampleRate))
+		}
 	}
 
-	targetSampleRate := meta.SampleRate
-	notes := []string{}
-	if _, ok := mWeightingCoefficients[targetSampleRate]; !ok {
-		targetSampleRate = 48000
-		notes = append(notes, fmt.Sprintf("resampled to %d Hz for M-weighting filter", targetSampleRate))
+	if needsFFmpeg {
+		if meta.SampleRate == 0 {
+			var probeErr error
+			meta, probeErr = probeAudio(inputPath)
+			if probeErr != nil {
+				fmt.Fprintln(os.Stderr, "ffprobe error:", probeErr)
+				os.Exit(1)
+			}
+		}
+		if meta.Channels <= 0 {
+			fmt.Fprintln(os.Stderr, "no audio stream detected")
+			os.Exit(1)
+		}
+		if targetSampleRate == 0 {
+			targetSampleRate = meta.SampleRate
+			if _, ok := mWeightingCoefficients[targetSampleRate]; !ok {
+				targetSampleRate = 48000
+				notes = append(notes, fmt.Sprintf("resampled to %d Hz for M-weighting filter", targetSampleRate))
+			}
+		}
+
+		decoded, decodeErr := decodeWithFFmpeg(inputPath, meta.Channels, targetSampleRate)
+		if decodeErr != nil {
+			fmt.Fprintln(os.Stderr, "processing error:", decodeErr)
+			os.Exit(1)
+		}
+		floatSamples = decoded
 	}
 
-	result, err := measureLoudness(inputPath, meta, targetSampleRate)
+	result, err := computeLoudness(inputPath, floatSamples, meta, targetSampleRate)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "processing error:", err)
 		os.Exit(1)
@@ -264,53 +318,43 @@ func probeAudio(path string) (audioMetadata, error) {
 	}, nil
 }
 
-func measureLoudness(path string, meta audioMetadata, targetSampleRate int) (loudnessResult, error) {
-	cmd := exec.Command("ffmpeg",
-		"-v", "error",
-		"-i", path,
-		"-ac", strconv.Itoa(meta.Channels),
-		"-ar", strconv.Itoa(targetSampleRate),
-		"-f", "f32le",
-		"-acodec", "pcm_f32le",
-		"pipe:1",
-	)
+func decodeWithFFmpeg(path string, channels, targetSampleRate int) ([]float64, error) {
+	args := []string{"-v", "error", "-i", path}
+	if channels > 0 {
+		args = append(args, "-ac", strconv.Itoa(channels))
+	}
+	args = append(args, "-ar", strconv.Itoa(targetSampleRate), "-f", "f32le", "-acodec", "pcm_f32le", "pipe:1")
 
+	cmd := exec.Command("ffmpeg", args...)
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		return loudnessResult{}, fmt.Errorf("cannot create ffmpeg stdout pipe: %w", err)
+		return nil, fmt.Errorf("cannot create ffmpeg stdout pipe: %w", err)
 	}
 
 	if err := cmd.Start(); err != nil {
-		return loudnessResult{}, fmt.Errorf("ffmpeg start failed: %w (%s)", err, strings.TrimSpace(stderr.String()))
+		return nil, fmt.Errorf("ffmpeg start failed: %w (%s)", err, strings.TrimSpace(stderr.String()))
 	}
 
-	var raw []byte
-	var rawErr error
-	done := make(chan struct{})
-	go func() {
-		raw, rawErr = io.ReadAll(stdout)
-		close(done)
-	}()
-	<-done
-	if rawErr != nil {
+	raw, err := io.ReadAll(stdout)
+	if err != nil {
 		cmd.Wait()
-		return loudnessResult{}, fmt.Errorf("cannot read decoded samples: %w", rawErr)
+		return nil, fmt.Errorf("cannot read decoded samples: %w", err)
 	}
 
 	if err := cmd.Wait(); err != nil {
-		return loudnessResult{}, fmt.Errorf("ffmpeg decoding failed: %w (%s)", err, strings.TrimSpace(stderr.String()))
+		return nil, fmt.Errorf("ffmpeg decoding failed: %w (%s)", err, strings.TrimSpace(stderr.String()))
 	}
 
 	if len(raw)%4 != 0 {
-		return loudnessResult{}, fmt.Errorf("decoded byte stream not aligned to 32-bit float samples")
+		return nil, fmt.Errorf("decoded byte stream not aligned to 32-bit float samples")
 	}
 
 	totalSamples := len(raw) / 4
-	if totalSamples%meta.Channels != 0 {
-		return loudnessResult{}, fmt.Errorf("decoded samples not divisible by channel count")
+	if channels > 0 && totalSamples%channels != 0 {
+		return nil, fmt.Errorf("decoded samples not divisible by channel count")
 	}
 
 	floatSamples := make([]float64, totalSamples)
@@ -319,7 +363,101 @@ func measureLoudness(path string, meta audioMetadata, targetSampleRate int) (lou
 		floatSamples[i] = float64(math.Float32frombits(bits))
 	}
 
-	frames := totalSamples / meta.Channels
+	return floatSamples, nil
+}
+
+func resampleAudio(samples []float64, fromRate, toRate, channels int) ([]float64, error) {
+	if fromRate == toRate {
+		return samples, nil
+	}
+	if fromRate <= 0 || toRate <= 0 || channels <= 0 {
+		return nil, errors.New("invalid resampling parameters")
+	}
+
+	inputFrames := len(samples) / channels
+	if inputFrames == 0 {
+		return nil, errors.New("no input frames to resample")
+	}
+
+	ratio := float64(toRate) / float64(fromRate)
+	outputFrames := int(float64(inputFrames) * ratio)
+	outputSamples := make([]float64, outputFrames*channels)
+
+	// Simple linear interpolation resampling
+	for outFrame := 0; outFrame < outputFrames; outFrame++ {
+		// Calculate the corresponding position in the input
+		srcPos := float64(outFrame) / ratio
+		srcFrame := int(srcPos)
+		frac := srcPos - float64(srcFrame)
+
+		// Handle edge case for last frame
+		if srcFrame >= inputFrames-1 {
+			srcFrame = inputFrames - 2
+			frac = 1.0
+		}
+
+		// Interpolate each channel
+		for ch := 0; ch < channels; ch++ {
+			sample1 := samples[srcFrame*channels+ch]
+			sample2 := samples[(srcFrame+1)*channels+ch]
+			interpolated := sample1 + frac*(sample2-sample1)
+			outputSamples[outFrame*channels+ch] = interpolated
+		}
+	}
+
+	return outputSamples, nil
+}
+
+func decodeWAV(path string) ([]float64, audioMetadata, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, audioMetadata{}, err
+	}
+	defer file.Close()
+
+	decoder := wav.NewDecoder(file)
+	if !decoder.IsValidFile() {
+		return nil, audioMetadata{}, errors.New("invalid wav file")
+	}
+
+	pcmBuffer, err := decoder.FullPCMBuffer()
+	if err != nil {
+		return nil, audioMetadata{}, fmt.Errorf("cannot read wav data: %w", err)
+	}
+
+	floatBuf := pcmBuffer.AsFloat32Buffer()
+	channels := int(decoder.NumChans)
+	if channels <= 0 {
+		channels = floatBuf.Format.NumChannels
+	}
+	if channels <= 0 {
+		return nil, audioMetadata{}, errors.New("wav file reports zero channels")
+	}
+
+	floatSamples := make([]float64, len(floatBuf.Data))
+	for i, sample := range floatBuf.Data {
+		floatSamples[i] = float64(sample)
+	}
+
+	frames := len(floatSamples) / channels
+	meta := audioMetadata{
+		SampleRate: int(decoder.SampleRate),
+		Channels:   channels,
+		Duration:   float64(frames) / float64(decoder.SampleRate),
+	}
+
+	return floatSamples, meta, nil
+}
+
+func computeLoudness(path string, floatSamples []float64, meta audioMetadata, targetSampleRate int) (loudnessResult, error) {
+	if meta.Channels <= 0 {
+		return loudnessResult{}, errors.New("invalid channel count")
+	}
+	if len(floatSamples)%meta.Channels != 0 {
+		return loudnessResult{}, errors.New("sample data not divisible by channel count")
+	}
+
+	frames := len(floatSamples) / meta.Channels
 	if frames == 0 {
 		return loudnessResult{}, errors.New("audio stream contains no frames")
 	}
@@ -402,12 +540,11 @@ func measureLoudness(path string, meta audioMetadata, targetSampleRate int) (lou
 			MeanPower:         measurementFloat(meanPower),
 			MeanPowerWeighted: measurementFloat(meanPowerWeighted),
 		},
-		//ReferenceOffsetDB:    referenceOffsetDB,
+		ReferenceOffsetDB:    referenceOffsetDB,
 		ChannelStats:         channelStats,
 		AudioDurationSeconds: audioDuration,
 	}
 
-	// Prefer measured duration when available from metadata, but only if close.
 	if meta.Duration > 0 && math.Abs(meta.Duration-duration) < 0.5 {
 		audioDuration = meta.Duration
 		metadataDuration = roundToDecimals(meta.Duration, decimalDigits)

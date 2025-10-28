@@ -1,6 +1,6 @@
 # Leq(M) Computation Pipeline
 
-This document summarises the mathematical steps the original C implementation (`src/leqm-nrt.c`) performs to derive the Leq(M) value defined in ISO 21727.  It tracks the code path taken by the default non–real‑time run (`worker_function`) and indicates where optional features (gating, Dolby DI, etc.) hook into the pipeline.
+This document summarises the mathematical steps the original C implementation (`src/leqm-nrt.c`) performs to derive the Leq(M) value defined in [ISO 21727](iso_2016.md).  It tracks the code path taken by the default non–real‑time run (`worker_function`) and indicates where optional features (gating, Dolby DI, etc.) hook into the pipeline.
 
 ## 1. Signal preparation
 

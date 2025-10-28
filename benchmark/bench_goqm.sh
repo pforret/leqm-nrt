@@ -100,7 +100,9 @@ if leq_m is None:
     print_result(row)
     sys.exit(0)
 
-sample_rate = metadata.get("original_sample_rate")
+sample_rate = metadata.get("effective_sample_rate")
+if sample_rate is None:
+    sample_rate = metadata.get("original_sample_rate")
 channels = metadata.get("channels")
 frames = metadata.get("frames")
 duration = metadata.get("duration_seconds")

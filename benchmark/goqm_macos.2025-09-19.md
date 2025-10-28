@@ -11,18 +11,18 @@ This report contains Leq(M) measurements for all WAV files in the examples direc
 
 ## Results
 
-| File | Leq(M) | Sample Rate | Channels | Frames | Duration | Processing Time | Speed Index | Status |
-|------|--------|-------------|----------|--------|----------|-----------------|-------------|--------|
-| boss30.wav | 88.780000 dB | 48000 Hz | 2 | 1441792 | 30.03s | 658ms | 45.6x | ✓ |
-| dcp.wav | 85.970000 dB | 48000 Hz | 6 | 1440000 | 30.00s | 829ms | 36.2x | ✓ |
-| dcp_largo.wav | 86.970000 dB | 48000 Hz | 8 | 4640000 | 96.66s | 7288ms | 13.3x | ✓ |
-| dcp_standaard.wav | 85.970000 dB | 48000 Hz | 6 | 1440000 | 30.00s | 2475ms | 12.1x | ✓ |
-| dmat1.wav | 79.700000 dB | 48000 Hz | 2 | 1499844 | 31.24s | 607ms | 51.5x | ✓ |
-| dmat2.wav | 80.710000 dB | 48000 Hz | 2 | 3249617 | 67.70s | 1064ms | 63.6x | ✓ |
-| dmat3.wav | 80.360000 dB | 48000 Hz | 2 | 999405 | 20.82s | 356ms | 58.4x | ✓ |
-| heyboy30.wav | 79.450000 dB | 48000 Hz | 2 | 1440000 | 30.00s | 651ms | 46.1x | ✓ |
-| largo_5sec.wav | 82.830000 dB | 48000 Hz | 8 | 240040 | 5.00s | 309ms | 16.2x | ✓ |
-| short.wav | 74.750000 dB | 48000 Hz | 2 | 240000 | 5.00s | 186ms | 26.8x | ✓ |
+| File              | Leq(M)       | Sample Rate | Channels | Frames  | Duration | Processing Time | Speed Index | Status |
+|-------------------|--------------|-------------|----------|---------|----------|-----------------|-------------|--------|
+| boss30.wav        | 88.780000 dB | 48000 Hz    | 2        | 1441792 | 30.03s   | 458ms           | 65.5x       | ✓      |
+| dcp.wav           | 85.970000 dB | 48000 Hz    | 6        | 1440000 | 30.00s   | 1536ms          | 19.5x       | ✓      |
+| dcp_largo.wav     | 86.970000 dB | 48000 Hz    | 8        | 4640000 | 96.66s   | 5536ms          | 17.5x       | ✓      |
+| dcp_standaard.wav | 85.970000 dB | 48000 Hz    | 6        | 1440000 | 30.00s   | 1494ms          | 20.1x       | ✓      |
+| dmat1.wav         | 79.700000 dB | 48000 Hz    | 2        | 1499844 | 31.24s   | 648ms           | 48.2x       | ✓      |
+| dmat2.wav         | 80.710000 dB | 48000 Hz    | 2        | 3249617 | 67.70s   | 1370ms          | 49.4x       | ✓      |
+| dmat3.wav         | 80.360000 dB | 48000 Hz    | 2        | 999405  | 20.82s   | 321ms           | 64.7x       | ✓      |
+| heyboy30.wav      | 79.450000 dB | 48000 Hz    | 2        | 1440000 | 30.00s   | 651ms           | 46.1x       | ✓      |
+| largo_5sec.wav    | 82.830000 dB | 48000 Hz    | 8        | 240040  | 5.00s    | 250ms           | 19.9x       | ✓      |
+| short.wav         | 74.750000 dB | 48000 Hz    | 2        | 240000  | 5.00s    | 157ms           | 31.7x       | ✓      |
 
 ## Statistics
 
@@ -33,8 +33,8 @@ This report contains Leq(M) measurements for all WAV files in the examples direc
 ### Performance
 
 - **Total audio duration:** 346.45s
-- **Total processing time:** 14426ms (14.42s)
-- **Overall speed index:** 24.0x
+- **Total processing time:** 12427ms (12.42s)
+- **Overall speed index:** 27.8x
 
 ## Technical Details
 
@@ -50,7 +50,7 @@ Version info not available
 ### System Information
 - **Platform:** Darwin
 - **Architecture:** arm64
-- **Date:** Fri Sep 19 21:41:58 CEST 2025
+- **Date:** Fri Sep 19 23:56:53 CEST 2025
 - **Working Directory:** /Users/pforret/Code/pforret/packages/leqm-nrt
 
 ---
