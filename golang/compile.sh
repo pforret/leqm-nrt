@@ -11,6 +11,9 @@ mkdir -p "$OUTPUT_DIR"
 mkdir -p "$GOCACHE_DIR"
 export GOCACHE="$GOCACHE_DIR"
 
+VERSION=$(cat "$REPO_DIR/VERSION.md")
+BUILD_DATE=$(date -u +%Y-%m-%d)
+
 function build_target {
   local goos="$1"
   local goarch="$2"
@@ -25,7 +28,7 @@ function build_target {
   echo "building $output_path (GOOS=$goos GOARCH=$goarch)"
   rm -f "$temp_path"
   GOOS="$goos" GOARCH="$goarch" CGO_ENABLED=0 \
-    go build -C "$GO_PROJECT_DIR" -o "$temp_path" .
+    go build -C "$GO_PROJECT_DIR" -ldflags="-X main.version=$VERSION -X main.buildDate=$BUILD_DATE" -o "$temp_path" .
   mv "$temp_path" "$output_path"
 }
 

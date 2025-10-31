@@ -5,13 +5,13 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"math"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime/debug"
 	"strconv"
 	"strings"
 	"time"
@@ -24,11 +24,15 @@ const (
 	decimalDigits     = 4
 )
 
-var supportedExtensions = map[string]struct{}{
-	".wav": {},
-	".mp3": {},
-	".m4a": {},
-}
+var (
+	version             = "development"
+	buildDate           = "unknown" // This can be set during build time
+	supportedExtensions = map[string]struct{}{
+		".wav": {},
+		".mp3": {},
+		".m4a": {},
+	}
+)
 
 type ffprobeOutput struct {
 	Streams []struct {
@@ -160,14 +164,37 @@ var mWeightingCoefficients = map[int]iirCoefficients{
 }
 
 func main() {
-	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, "usage: leqm-go <audiofile>")
+	help := flag.Bool("h", false, "Show help and version information.")
+	flag.BoolVar(help, "help", false, "Show help and version information.")
+	noFFmpeg := flag.Bool("n", false, "Disable FFmpeg/FFprobe (only 48kHz WAV supported).")
+	flag.BoolVar(noFFmpeg, "no-ffmpeg", false, "Disable FFmpeg/FFprobe (only 48kHz WAV supported).")
+
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "goqm %s (built %s)\n", version, buildDate)
+		fmt.Fprintf(os.Stderr, "Usage: goqm [options] <audiofile>\n\n")
+		fmt.Fprintln(os.Stderr, "Calculates Leq(M) loudness for an audio file.")
+		fmt.Fprintln(os.Stderr, "Supported formats: .wav, .mp3, .m4a (requires ffmpeg).")
+		fmt.Fprintln(os.Stderr, "\nOptions:")
+		fmt.Fprintln(os.Stderr, "  -h, --help        Show this help message and exit.")
+		fmt.Fprintln(os.Stderr, "  -n, --no-ffmpeg   Disable FFmpeg/FFprobe (only 48kHz WAV supported).")
+	}
+
+	flag.Parse()
+
+	if *help {
+		flag.Usage()
+		os.Exit(0)
+	}
+
+	if flag.NArg() != 1 {
+		fmt.Fprintln(os.Stderr, "Error: audio file path is required.")
+		flag.Usage()
 		os.Exit(1)
 	}
 
 	start := time.Now()
 
-	inputPath := os.Args[1]
+	inputPath := flag.Arg(0)
 	if err := validateExtension(inputPath); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
@@ -189,31 +216,46 @@ func main() {
 			fmt.Fprintln(os.Stderr, "wav decode error:", wavErr)
 			os.Exit(1)
 		}
-		if _, ok := mWeightingCoefficients[wavMeta.SampleRate]; ok {
+		if *noFFmpeg {
+			if wavMeta.SampleRate != 48000 {
+				fmt.Fprintf(os.Stderr, "Error: with --no-ffmpeg, only 48kHz WAV files are supported, not %dHz.\n", wavMeta.SampleRate)
+				os.Exit(1)
+			}
 			meta = wavMeta
 			floatSamples = wavSamples
 			targetSampleRate = wavMeta.SampleRate
 			needsFFmpeg = false
 		} else {
-			// WAV file with unsupported sample rate - resample it ourselves
-			targetSampleRate = 48000
-			resampled, resampleErr := resampleAudio(wavSamples, wavMeta.SampleRate, targetSampleRate, wavMeta.Channels)
-			if resampleErr != nil {
-				fmt.Fprintln(os.Stderr, "resample error:", resampleErr)
-				os.Exit(1)
+			if _, ok := mWeightingCoefficients[wavMeta.SampleRate]; ok {
+				meta = wavMeta
+				floatSamples = wavSamples
+				targetSampleRate = wavMeta.SampleRate
+				needsFFmpeg = false
+			} else {
+				// WAV file with unsupported sample rate - resample it ourselves
+				targetSampleRate = 48000
+				resampled, resampleErr := resampleAudio(wavSamples, wavMeta.SampleRate, targetSampleRate, wavMeta.Channels)
+				if resampleErr != nil {
+					fmt.Fprintln(os.Stderr, "resample error:", resampleErr)
+					os.Exit(1)
+				}
+				meta = audioMetadata{
+					SampleRate: targetSampleRate,
+					Channels:   wavMeta.Channels,
+					Duration:   wavMeta.Duration,
+				}
+				floatSamples = resampled
+				needsFFmpeg = false
+				notes = append(notes, fmt.Sprintf("resampled from %d Hz to %d Hz for M-weighting filter", wavMeta.SampleRate, targetSampleRate))
 			}
-			meta = audioMetadata{
-				SampleRate: targetSampleRate,
-				Channels:   wavMeta.Channels,
-				Duration:   wavMeta.Duration,
-			}
-			floatSamples = resampled
-			needsFFmpeg = false
-			notes = append(notes, fmt.Sprintf("resampled from %d Hz to %d Hz for M-weighting filter", wavMeta.SampleRate, targetSampleRate))
 		}
 	}
 
 	if needsFFmpeg {
+		if *noFFmpeg {
+			fmt.Fprintf(os.Stderr, "Error: %s files require ffmpeg, which was disabled with --no-ffmpeg.\n", ext)
+			os.Exit(1)
+		}
 		if meta.SampleRate == 0 {
 			var probeErr error
 			meta, probeErr = probeAudio(inputPath)
@@ -583,13 +625,6 @@ func gatherExecutionInfo(inputPath string, start time.Time, audioDuration float6
 	} else {
 		if resolved, err := filepath.EvalSymlinks(executable); err == nil {
 			executable = resolved
-		}
-	}
-
-	version := "development"
-	if info, ok := debug.ReadBuildInfo(); ok && info != nil {
-		if v := strings.TrimSpace(info.Main.Version); v != "" && v != "(devel)" {
-			version = v
 		}
 	}
 
