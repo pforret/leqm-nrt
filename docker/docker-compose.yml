@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  # Linux x86_64 build
+  build-linux:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.linux
+    image: leqm-nrt:linux
+    volumes:
+      - ../build:/output
+    command: sh -c "cp /build/build/leqm_linux /output/ && chmod +x /output/leqm_linux"
+
+  # Windows x86_64 build (MinGW cross-compilation)
+  build-windows:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.windows
+    image: leqm-nrt:windows
+    volumes:
+      - ../build:/output
+    command: sh -c "cp /build/src/build/leqm_win.exe /output/ && chmod +x /output/leqm_win.exe"

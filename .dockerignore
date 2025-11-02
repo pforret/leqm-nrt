@@ -1,0 +1,58 @@
+# Docker ignore file - excludes files from Docker build context
+# This speeds up builds and reduces image size
+
+# Build artifacts
+build/
+*.o
+*.lo
+*.la
+.libs/
+.deps/
+
+# Autotools generated files
+autom4te.cache/
+config.log
+config.status
+Makefile
+src/Makefile
+stamp-h1
+config.h
+config.h.in~
+
+# Version control
+.git/
+.github/
+.gitignore
+
+# Documentation
+docs/
+!docs/index.md
+*.md
+!README.md
+!docker/README.md
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Go binaries (not needed for C compilation)
+golang/
+*.mod
+*.sum
+
+# Benchmark data
+benchmark/
+examples/*.wav
+!examples/short.wav
+
+# Temporary files
+temp/
+tmp/
+*.tmp
+
+# macOS specific
+.claude/

@@ -1,0 +1,73 @@
+# Dockerfile for cross-compiling leqm-nrt for Windows (x86_64)
+FROM debian:bullseye
+
+# Avoid interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install MinGW cross-compiler and build dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    autoconf \
+    automake \
+    pkg-config \
+    mingw-w64 \
+    mingw-w64-tools \
+    wget \
+    unzip \
+    python3 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /build
+
+# Download and build libsndfile for Windows
+RUN wget https://github.com/libsndfile/libsndfile/releases/download/1.2.2/libsndfile-1.2.2.tar.xz && \
+    tar xf libsndfile-1.2.2.tar.xz && \
+    cd libsndfile-1.2.2 && \
+    ./configure --host=x86_64-w64-mingw32 --prefix=/usr/x86_64-w64-mingw32 && \
+    make -j$(nproc) && \
+    make install && \
+    cd .. && \
+    rm -rf libsndfile-1.2.2 libsndfile-1.2.2.tar.xz
+
+# Copy source files
+COPY . /build/src
+WORKDIR /build/src
+
+# Clean any previous builds
+RUN make clean 2>/dev/null || true && \
+    rm -rf temp && \
+    rm -f missing config.cache && \
+    rm -f src/Makefile src/Makefile.in
+
+# Generate build configuration
+RUN autoreconf -f -i
+
+# Configure for Windows cross-compilation
+# Skip malloc check to avoid rpl_malloc issue in cross-compilation
+RUN ./configure \
+    --host=x86_64-w64-mingw32 \
+    --prefix=/usr/x86_64-w64-mingw32 \
+    CC=x86_64-w64-mingw32-gcc \
+    CXX=x86_64-w64-mingw32-g++ \
+    PKG_CONFIG_PATH=/usr/x86_64-w64-mingw32/lib/pkgconfig \
+    CPPFLAGS="-I/usr/x86_64-w64-mingw32/include" \
+    LDFLAGS="-L/usr/x86_64-w64-mingw32/lib -static" \
+    ac_cv_func_malloc_0_nonnull=yes
+
+# Build with all available CPU cores
+RUN make -j$(nproc)
+
+# Create output directory
+RUN mkdir -p /build/src/build
+
+# Copy binary to output directory
+RUN cp src/leqm-nrt.exe /build/src/build/leqm_win.exe 2>/dev/null || \
+    cp src/leqm-nrt /build/src/build/leqm_win.exe && \
+    chmod +x /build/src/build/leqm_win.exe
+
+# Verify the binary exists
+RUN ls -lh /build/src/build/leqm_win.exe
+
+# Default command
+CMD ["cp", "-r", "/build/src/build", "/output"]
